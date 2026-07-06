@@ -1,8 +1,9 @@
 {
   "name": "meeting-room-booking",
   "version": "1.0.0",
-  "description": "사내 회의실 예약 웹 서비스",
+  "description": "사내 회의실 예약 웹 서비스 + MCP 서버",
   "main": "server.js",
+  "type": "module",
   "scripts": {
     "start": "node server.js"
   },
@@ -11,6 +12,8 @@
   },
   "dependencies": {
     "express": "^4.19.2",
-    "pg": "^8.11.5"
+    "pg": "^8.11.5",
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "zod": "^3.23.8"
   }
 }
