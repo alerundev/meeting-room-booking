@@ -345,7 +345,7 @@ app.get('/mcp', mcpAuth, handleSse);
 // Also support /mcp/sse for broader compatibility
 app.get('/mcp/sse', mcpAuth, handleSse);
 
-app.post('/mcp/messages', mcpAuth, express.json(), async (req, res) => {
+app.post('/mcp/messages', mcpAuth, async (req, res) => {
   const sessionId = req.query.sessionId;
   console.log(`[MCP] POST /messages sessionId=${sessionId}`);
   const transport = transports[sessionId];
@@ -353,7 +353,7 @@ app.post('/mcp/messages', mcpAuth, express.json(), async (req, res) => {
     res.status(400).send('No transport found for sessionId');
     return;
   }
-  await transport.handlePostMessage(req, res);
+  await transport.handlePostMessage(req, res, req.body);
 });
 
 // ── SPA fallback ──────────────────────────────────────────────
