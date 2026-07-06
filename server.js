@@ -173,15 +173,20 @@ const MCP_TOKEN = process.env.MCP_TOKEN;
 
 // auth middleware for MCP endpoints
 function mcpAuth(req, res, next) {
+  const url = req.originalUrl || req.url;
+  console.log(`[MCP] ${req.method} ${url} Authorization=${req.headers.authorization ? 'provided' : 'none'}`);
   if (!MCP_TOKEN) {
-    return next(); // no token configured = allow all
+    console.log('[MCP] No MCP_TOKEN configured, allowing all');
+    return next();
   }
   const auth = req.headers.authorization || '';
   const parts = auth.split(' ');
   if (parts[0] !== 'Bearer' || parts[1] !== MCP_TOKEN) {
+    console.log('[MCP] Auth rejected — expected Bearer <token>');
     res.status(401).json({ error: 'Unauthorized' });
     return;
   }
+  console.log('[MCP] Auth passed');
   next();
 }
 
@@ -323,17 +328,26 @@ mcpServer.tool(
 // SSE transport
 const transports = {}; // sessionId -> transport
 
-app.get('/mcp/sse', mcpAuth, async (req, res) => {
+// SSE transport helper
+async function handleSse(req, res) {
+  console.log('[MCP] Starting SSE transport');
   const transport = new SSEServerTransport('/mcp/messages', res);
   transports[transport.sessionId] = transport;
   res.on('close', () => {
+    console.log(`[MCP] SSE closed, session=${transport.sessionId}`);
     delete transports[transport.sessionId];
   });
   await mcpServer.connect(transport);
-});
+}
+
+// Cloudtype convention: /mcp as SSE endpoint
+app.get('/mcp', mcpAuth, handleSse);
+// Also support /mcp/sse for broader compatibility
+app.get('/mcp/sse', mcpAuth, handleSse);
 
 app.post('/mcp/messages', mcpAuth, express.json(), async (req, res) => {
   const sessionId = req.query.sessionId;
+  console.log(`[MCP] POST /messages sessionId=${sessionId}`);
   const transport = transports[sessionId];
   if (!transport) {
     res.status(400).send('No transport found for sessionId');
