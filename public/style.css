@@ -165,20 +165,20 @@ body {
 }
 
 /* Room colors — default (unselected) tinted backgrounds */
-.room-pill[data-id="1"] { background: #f2fdf5; color: #1a6b2c; }
-.room-pill[data-id="1"] .room-pill-dot { background: #34c759; }
-.room-pill[data-id="1"].selected { background: #34c759; color: #fff; }
-.room-pill[data-id="1"].selected .room-pill-dot { background: #fff; }
+.room-pill[data-name="대회의실"] { background: #f2fdf5; color: #1a6b2c; }
+.room-pill[data-name="대회의실"] .room-pill-dot { background: #34c759; }
+.room-pill[data-name="대회의실"].selected { background: #34c759; color: #fff; }
+.room-pill[data-name="대회의실"].selected .room-pill-dot { background: #fff; }
 
-.room-pill[data-id="2"] { background: #fffbea; color: #5c4d00; }
-.room-pill[data-id="2"] .room-pill-dot { background: #ffcc00; }
-.room-pill[data-id="2"].selected { background: #ffcc00; color: #111; }
-.room-pill[data-id="2"].selected .room-pill-dot { background: #111; }
+.room-pill[data-name="중회의실"] { background: #fffbea; color: #5c4d00; }
+.room-pill[data-name="중회의실"] .room-pill-dot { background: #ffcc00; }
+.room-pill[data-name="중회의실"].selected { background: #ffcc00; color: #111; }
+.room-pill[data-name="중회의실"].selected .room-pill-dot { background: #111; }
 
-.room-pill[data-id="3"] { background: #fff8f0; color: #8a4c00; }
-.room-pill[data-id="3"] .room-pill-dot { background: #ff9500; }
-.room-pill[data-id="3"].selected { background: #ff9500; color: #fff; }
-.room-pill[data-id="3"].selected .room-pill-dot { background: #fff; }
+.room-pill[data-name="소회의실"] { background: #fff8f0; color: #8a4c00; }
+.room-pill[data-name="소회의실"] .room-pill-dot { background: #ff9500; }
+.room-pill[data-name="소회의실"].selected { background: #ff9500; color: #fff; }
+.room-pill[data-name="소회의실"].selected .room-pill-dot { background: #fff; }
 
 /* Submit button */
 .form-actions {

@@ -19,9 +19,9 @@ const dom = {
 };
 
 const ROOM_META = {
-  1: { color: 'green', name: '대회의실' },
-  2: { color: 'yellow', name: '중회의실' },
-  3: { color: 'orange', name: '소회의실' },
+  '대회의실': { color: 'green' },
+  '중회의실': { color: 'yellow' },
+  '소회의실': { color: 'orange' },
 };
 
 // ── Utils ──
@@ -65,8 +65,8 @@ function showFormMessage(text, type) {
   setTimeout(() => dom.formMessage.classList.remove('show'), 5000);
 }
 
-function pickColorName(roomId) {
-  const meta = ROOM_META[roomId];
+function pickColorName(name) {
+  const meta = ROOM_META[name];
   return meta ? meta.color : 'green';
 }
 
@@ -87,8 +87,10 @@ async function loadRooms() {
   try {
     const res = await fetch('/api/rooms');
     const rooms = await res.json();
-    state.rooms = rooms;
-    renderRoomPills(rooms);
+    const order = ['대회의실', '중회의실', '소회의실'];
+    const sorted = [...rooms].sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
+    state.rooms = sorted;
+    renderRoomPills(sorted);
   } catch (err) {
     dom.roomPills.innerHTML = '<span style="color:#ff3b30;font-size:12px;">회의실 목록을 불러오지 못했습니다.</span>';
   }
@@ -97,10 +99,10 @@ async function loadRooms() {
 function renderRoomPills(rooms) {
   dom.roomPills.innerHTML = '';
   rooms.forEach((r, i) => {
-    const meta = ROOM_META[r.id] || { color: 'green' };
     const pill = document.createElement('div');
     pill.className = `room-pill${i === 0 ? ' selected' : ''}`;
     pill.dataset.id = r.id;
+    pill.dataset.name = r.name;
     pill.innerHTML = `<span class="room-pill-dot"></span>${r.name}`;
     pill.addEventListener('click', () => {
       dom.roomPills.querySelectorAll('.room-pill').forEach(p => p.classList.remove('selected'));
@@ -131,7 +133,7 @@ function renderTimetable(reservations) {
 
   state.rooms.forEach(room => {
     const roomRes = reservations.filter(r => r.room_id === room.id);
-    const color = pickColorName(room.id);
+    const color = pickColorName(room.name);
 
     const card = document.createElement('div');
     card.className = 'timetable-card';
