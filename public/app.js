@@ -17,9 +17,9 @@ const dom = {
 };
 
 const ROOM_META = {
-  1: { color: 'green', name: '대회의실', icon: '🏢' },
-  2: { color: 'indigo', name: '중회의실', icon: '🧩' },
-  3: { color: 'orange', name: '소회의실', icon: '💬' },
+  1: { color: 'green', name: '대회의실' },
+  2: { color: 'indigo', name: '중회의실' },
+  3: { color: 'orange', name: '소회의실' },
 };
 
 // ── Utils ──
@@ -88,18 +88,18 @@ async function loadRooms() {
     state.rooms = rooms;
     renderRoomPills(rooms);
   } catch (err) {
-    dom.roomPills.innerHTML = '<span style="color:#FF3B30;font-size:12px;">회의실 목록을 불러오지 못했습니다.</span>';
+    dom.roomPills.innerHTML = '<span style="color:#ff3b30;font-size:12px;">회의실 목록을 불러오지 못했습니다.</span>';
   }
 }
 
 function renderRoomPills(rooms) {
   dom.roomPills.innerHTML = '';
   rooms.forEach((r, i) => {
-    const meta = ROOM_META[r.id] || { color: 'green', icon: '' };
+    const meta = ROOM_META[r.id] || { color: 'green' };
     const pill = document.createElement('div');
     pill.className = `room-pill${i === 0 ? ' selected' : ''}`;
     pill.dataset.id = r.id;
-    pill.innerHTML = `<span class="pill-icon">${meta.icon}</span>${r.name}`;
+    pill.innerHTML = `<span class="room-pill-dot"></span>${r.name}`;
     pill.addEventListener('click', () => {
       dom.roomPills.querySelectorAll('.room-pill').forEach(p => p.classList.remove('selected'));
       pill.classList.add('selected');
@@ -116,7 +116,7 @@ async function loadTimetable() {
     state.reservations = data;
     renderTimetable(data);
   } catch (err) {
-    dom.timetableContainer.innerHTML = '<div style="color:#FF3B30;font-size:12px;padding:12px;">예약 현황을 불러오지 못했습니다.</div>';
+    dom.timetableContainer.innerHTML = '<div style="color:#ff3b30;font-size:12px;padding:12px;">예약 현황을 불러오지 못했습니다.</div>';
   }
 }
 
@@ -128,7 +128,6 @@ function renderTimetable(reservations) {
   const spanMin = (endHour - startHour) * 60;
 
   state.rooms.forEach(room => {
-    const meta = ROOM_META[room.id] || { color: 'green', icon: '' };
     const roomRes = reservations.filter(r => r.room_id === room.id);
     const color = pickColorName(room.id);
 
@@ -139,7 +138,7 @@ function renderTimetable(reservations) {
     header.className = 'timetable-header';
     header.innerHTML = `
       <span class="room-badge ${color}"></span>
-      <h3>${meta.icon} ${room.name}</h3>
+      <h3>${room.name}</h3>
       <span class="room-count">${roomRes.length}건 예약</span>
     `;
     card.appendChild(header);
@@ -234,7 +233,7 @@ dom.form.addEventListener('submit', async (e) => {
     }
 
     showFormMessage('예약이 완료되었습니다!', 'success');
-    showToast('✅ 예약 완료');
+    showToast('예약이 완료되었습니다.');
     dom.form.reset();
     dom.inputDate.value = todayStr();
 

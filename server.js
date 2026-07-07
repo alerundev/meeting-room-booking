@@ -25,9 +25,9 @@ const pool = new Pool({
 });
 
 const ROOMS = [
-  { name: '대회의실', icon: '🏢', color: '#34C759' },
-  { name: '중회의실', icon: '🧩', color: '#007AFF' },
-  { name: '소회의실', icon: '💬', color: '#FF9500' }
+  { name: '대회의실', color: '#34C759' },
+  { name: '중회의실', color: '#007AFF' },
+  { name: '소회의실', color: '#FF9500' }
 ];
 
 async function initDb() {
