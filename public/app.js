@@ -18,7 +18,7 @@ const dom = {
 
 const ROOM_META = {
   1: { color: 'green', name: '대회의실' },
-  2: { color: 'indigo', name: '중회의실' },
+  2: { color: 'yellow', name: '중회의실' },
   3: { color: 'orange', name: '소회의실' },
 };
 

@@ -168,10 +168,10 @@ body {
 .room-pill[data-id="1"].selected { background: #34c759; color: #fff; }
 .room-pill[data-id="1"].selected .room-pill-dot { background: #fff; }
 
-.room-pill[data-id="2"] { background: #f0f5ff; color: #0039a8; }
-.room-pill[data-id="2"] .room-pill-dot { background: #007aff; }
-.room-pill[data-id="2"].selected { background: #007aff; color: #fff; }
-.room-pill[data-id="2"].selected .room-pill-dot { background: #fff; }
+.room-pill[data-id="2"] { background: #fffbea; color: #5c4d00; }
+.room-pill[data-id="2"] .room-pill-dot { background: #ffcc00; }
+.room-pill[data-id="2"].selected { background: #ffcc00; color: #111; }
+.room-pill[data-id="2"].selected .room-pill-dot { background: #111; }
 
 .room-pill[data-id="3"] { background: #fff8f0; color: #8a4c00; }
 .room-pill[data-id="3"] .room-pill-dot { background: #ff9500; }
@@ -258,7 +258,7 @@ body {
 }
 
 .room-badge.green { background: #34C759; }
-.room-badge.indigo { background: #5856D6; }
+.room-badge.yellow { background: #FFCC00; }
 .room-badge.orange { background: #FF9500; }
 
 .timetable-header h3 {
@@ -325,7 +325,7 @@ body {
 .timeline-slot:hover { transform: scaleY(1.06); z-index: 5; }
 
 .timeline-slot.green { background: #34c759; color: #fff; }
-.timeline-slot.indigo { background: #5856d6; color: #fff; }
+.timeline-slot.yellow { background: #ffcc00; color: #111; }
 .timeline-slot.orange { background: #ff9500; color: #fff; }
 
 .slot-time {
