@@ -42,12 +42,16 @@ async function initDb() {
       id SERIAL PRIMARY KEY,
       room_id INTEGER NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
+      topic TEXT NOT NULL DEFAULT '',
+      attendees INTEGER NOT NULL DEFAULT 2,
       date DATE NOT NULL,
       start_time TIME NOT NULL,
       end_time TIME NOT NULL,
       created_at TIMESTAMP NOT NULL DEFAULT NOW()
     );
   `);
+  await pool.query(`ALTER TABLE reservations ADD COLUMN IF NOT EXISTS topic TEXT NOT NULL DEFAULT '';`);
+  await pool.query(`ALTER TABLE reservations ADD COLUMN IF NOT EXISTS attendees INTEGER NOT NULL DEFAULT 2;`);
 
   for (const room of ROOMS) {
     await pool.query(
@@ -104,7 +108,7 @@ app.get('/api/reservations', async (req, res) => {
   try {
     const { date } = req.query;
     let query = `
-      SELECT r.id, r.room_id, ro.name AS room_name, r.name, r.date,
+      SELECT r.id, r.room_id, ro.name AS room_name, r.name, r.topic, r.attendees, r.date,
              to_char(r.start_time, 'HH24:MI') AS start_time,
              to_char(r.end_time, 'HH24:MI') AS end_time,
              r.created_at
@@ -127,7 +131,7 @@ app.get('/api/reservations', async (req, res) => {
 
 app.post('/api/reservations', async (req, res) => {
   try {
-    const { name, room_id, date, start_time, end_time } = req.body;
+    const { name, topic, attendees, room_id, date, start_time, end_time } = req.body;
 
     if (!name || !room_id || !date || !start_time || !end_time) {
       return res.status(400).json({ error: '모든 항목을 입력해 주세요.' });
@@ -148,9 +152,9 @@ app.post('/api/reservations', async (req, res) => {
     }
 
     const insert = await pool.query(
-      `INSERT INTO reservations (room_id, name, date, start_time, end_time)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-      [room_id, name, date, start_time, end_time]
+      `INSERT INTO reservations (room_id, name, topic, attendees, date, start_time, end_time)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+      [room_id, name, topic || '', Number(attendees) || 2, date, start_time, end_time]
     );
 
     res.status(201).json({ id: insert.rows[0].id, message: '예약이 완료되었습니다.' });

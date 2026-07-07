@@ -9,6 +9,8 @@ const dom = {
   form: document.getElementById('reservation-form'),
   formMessage: document.getElementById('form-message'),
   inputName: document.getElementById('input-name'),
+  inputTopic: document.getElementById('input-topic'),
+  inputAttendees: document.getElementById('input-attendees'),
   inputDate: document.getElementById('input-date'),
   inputStart: document.getElementById('input-start'),
   inputEnd: document.getElementById('input-end'),
@@ -209,6 +211,8 @@ dom.form.addEventListener('submit', async (e) => {
   dom.formMessage.classList.remove('show');
 
   const name = dom.inputName.value.trim();
+  const topic = dom.inputTopic.value.trim();
+  const attendees = dom.inputAttendees.value;
   const roomInput = dom.roomPills.querySelector('.room-pill.selected');
   const room_id = roomInput ? Number(roomInput.dataset.id) : null;
   const date = dom.inputDate.value;
@@ -216,6 +220,7 @@ dom.form.addEventListener('submit', async (e) => {
   const end_time = dom.inputEnd.value;
 
   if (!name) { showFormMessage('예약자 이름을 입력해 주세요.', 'error'); return; }
+  if (!topic) { showFormMessage('회의 주제를 입력해 주세요.', 'error'); return; }
   if (!room_id) { showFormMessage('회의실을 선택해 주세요.', 'error'); return; }
   if (start_time >= end_time) { showFormMessage('종료 시간은 시작 시간보다 늦어야 합니다.', 'error'); return; }
 
@@ -223,7 +228,7 @@ dom.form.addEventListener('submit', async (e) => {
     const res = await fetch('/api/reservations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, room_id, date, start_time, end_time }),
+      body: JSON.stringify({ name, topic, attendees, room_id, date, start_time, end_time }),
     });
     const data = await res.json();
 
@@ -258,6 +263,7 @@ dom.form.addEventListener('submit', async (e) => {
   fillSelect(dom.inputEnd);
   // default end = start + 1 hour
   dom.inputEnd.selectedIndex = Math.min(dom.inputEnd.options.length - 1, 2);
+  dom.inputAttendees.value = '2';
 
   await loadRooms();
   await loadTimetable();

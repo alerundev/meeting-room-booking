@@ -118,6 +118,8 @@ body {
 .form-group input::placeholder { color: #c7c7cc; font-weight: 400; }
 
 .form-group-date { grid-column: span 1; }
+.form-group-attendees { grid-column: span 1; }
+.form-group-rooms { grid-column: span 2; }
 .form-group-time { grid-column: span 2; }
 
 .time-select-row {
