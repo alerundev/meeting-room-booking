@@ -1,189 +1,265 @@
 const state = {
   rooms: [],
+  reservations: [],
 };
 
-const roomsGrid = document.getElementById('rooms-grid');
-const statusGrid = document.getElementById('status-grid');
-const todayDateEl = document.getElementById('today-date');
-const modalBackdrop = document.getElementById('modal-backdrop');
-const form = document.getElementById('reservation-form');
-const formMessage = document.getElementById('form-message');
-const roomRadioGroup = document.getElementById('room-radio-group');
-const inputDate = document.getElementById('input-date');
-const inputStart = document.getElementById('input-start');
-const inputEnd = document.getElementById('input-end');
-const toast = document.getElementById('toast');
+const dom = {
+  todayDate: document.getElementById('today-date'),
+  roomPills: document.getElementById('room-pills'),
+  form: document.getElementById('reservation-form'),
+  formMessage: document.getElementById('form-message'),
+  inputName: document.getElementById('input-name'),
+  inputDate: document.getElementById('input-date'),
+  inputStart: document.getElementById('input-start'),
+  inputEnd: document.getElementById('input-end'),
+  timetableContainer: document.getElementById('timetable-container'),
+  toast: document.getElementById('toast'),
+};
 
-const ROOM_ICONS = { '대회의실': '🏢', '소회의실': '🧩' };
+const ROOM_META = {
+  1: { color: 'green', name: '대회의실', icon: '🏢' },
+  2: { color: 'indigo', name: '중회의실', icon: '🧩' },
+  3: { color: 'orange', name: '소회의실', icon: '💬' },
+};
 
+// ── Utils ──
 function todayStr() {
   const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function formatDateLabel(dateStr) {
   const d = new Date(dateStr + 'T00:00:00');
-  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
-  return `${d.getMonth() + 1}월 ${d.getDate()}일 (${weekdays[d.getDay()]})`;
+  const weekdays = ['일','월','화','수','목','금','토'];
+  return `${d.getMonth()+1}월 ${d.getDate()}일 ${weekdays[d.getDay()]}`;
 }
 
-function buildTimeOptions(selectEl) {
-  selectEl.innerHTML = '';
+function parseTimeMin(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function buildTimes() {
+  const times = [];
   for (let h = 8; h <= 20; h++) {
     for (const m of ['00', '30']) {
       if (h === 20 && m === '30') continue;
-      const value = `${String(h).padStart(2, '0')}:${m}`;
-      const opt = document.createElement('option');
-      opt.value = value;
-      opt.textContent = value;
-      selectEl.appendChild(opt);
+      times.push(`${String(h).padStart(2,'0')}:${m}`);
     }
   }
+  return times;
 }
 
-function showToast(message) {
-  toast.textContent = message;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2600);
+// ── UI ──
+function showToast(msg) {
+  dom.toast.textContent = msg;
+  dom.toast.classList.add('show');
+  setTimeout(() => dom.toast.classList.remove('show'), 2400);
 }
 
+function showFormMessage(text, type) {
+  dom.formMessage.textContent = text;
+  dom.formMessage.className = `form-message show ${type}`;
+  setTimeout(() => dom.formMessage.classList.remove('show'), 5000);
+}
+
+function pickColorName(roomId) {
+  const meta = ROOM_META[roomId];
+  return meta ? meta.color : 'green';
+}
+
+// ── Time selects ──
+function fillSelect(select) {
+  const oldVal = select.value;
+  select.innerHTML = '';
+  buildTimes().forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    select.appendChild(opt);
+  });
+  if (oldVal) select.value = oldVal;
+}
+
+// ── Rooms ──
 async function loadRooms() {
   try {
     const res = await fetch('/api/rooms');
     const rooms = await res.json();
     state.rooms = rooms;
-
-    roomsGrid.innerHTML = rooms.map((r) => `
-      <div class="room-card">
-        <div class="room-icon">${ROOM_ICONS[r.name] || '🏬'}</div>
-        <h3>${r.name}</h3>
-        <p>편하게 예약하고 사용해보세요.</p>
-      </div>
-    `).join('');
-
-    roomRadioGroup.innerHTML = rooms.map((r, i) => `
-      <div class="room-radio">
-        <input type="radio" name="room" id="room-${r.id}" value="${r.id}" ${i === 0 ? 'checked' : ''} />
-        <label for="room-${r.id}">${ROOM_ICONS[r.name] || ''} ${r.name}</label>
-      </div>
-    `).join('');
+    renderRoomPills(rooms);
   } catch (err) {
-    roomsGrid.innerHTML = `<div class="empty-state">회의실 목록을 불러오지 못했습니다.</div>`;
+    dom.roomPills.innerHTML = '<span style="color:#FF3B30;font-size:12px;">회의실 목록을 불러오지 못했습니다.</span>';
   }
 }
 
-async function loadTodayStatus() {
-  const date = todayStr();
-  todayDateEl.textContent = formatDateLabel(date);
-  try {
-    const res = await fetch(`/api/reservations?date=${date}`);
-    const reservations = await res.json();
+function renderRoomPills(rooms) {
+  dom.roomPills.innerHTML = '';
+  rooms.forEach((r, i) => {
+    const meta = ROOM_META[r.id] || { color: 'green', icon: '' };
+    const pill = document.createElement('div');
+    pill.className = `room-pill${i === 0 ? ' selected' : ''}`;
+    pill.dataset.id = r.id;
+    pill.innerHTML = `<span class="pill-icon">${meta.icon}</span>${r.name}`;
+    pill.addEventListener('click', () => {
+      dom.roomPills.querySelectorAll('.room-pill').forEach(p => p.classList.remove('selected'));
+      pill.classList.add('selected');
+    });
+    dom.roomPills.appendChild(pill);
+  });
+}
 
-    if (reservations.length === 0) {
-      statusGrid.innerHTML = `<div class="empty-state">오늘 등록된 예약이 없습니다. 첫 예약을 등록해보세요!</div>`;
-      return;
+// ── Timetable ──
+async function loadTimetable() {
+  try {
+    const res = await fetch(`/api/reservations?date=${todayStr()}`);
+    const data = await res.json();
+    state.reservations = data;
+    renderTimetable(data);
+  } catch (err) {
+    dom.timetableContainer.innerHTML = '<div style="color:#FF3B30;font-size:12px;padding:12px;">예약 현황을 불러오지 못했습니다.</div>';
+  }
+}
+
+function renderTimetable(reservations) {
+  dom.timetableContainer.innerHTML = '';
+  const startHour = 8;
+  const endHour = 20;
+  const startMin = startHour * 60;
+  const spanMin = (endHour - startHour) * 60;
+
+  state.rooms.forEach(room => {
+    const meta = ROOM_META[room.id] || { color: 'green', icon: '' };
+    const roomRes = reservations.filter(r => r.room_id === room.id);
+    const color = pickColorName(room.id);
+
+    const card = document.createElement('div');
+    card.className = 'timetable-card';
+
+    const header = document.createElement('div');
+    header.className = 'timetable-header';
+    header.innerHTML = `
+      <span class="room-badge ${color}"></span>
+      <h3>${meta.icon} ${room.name}</h3>
+      <span class="room-count">${roomRes.length}건 예약</span>
+    `;
+    card.appendChild(header);
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'timeline-wrapper';
+
+    // Hour markers
+    const ruler = document.createElement('div');
+    ruler.className = 'timeline-ruler';
+    for (let h = startHour; h <= endHour; h++) {
+      const s = document.createElement('span');
+      s.textContent = `${h}:00`;
+      ruler.appendChild(s);
+    }
+    wrapper.appendChild(ruler);
+
+    const track = document.createElement('div');
+    track.className = 'timeline-track';
+
+    if (roomRes.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'timeline-empty';
+      empty.textContent = '예약 없음';
+      track.appendChild(empty);
     }
 
-    statusGrid.innerHTML = reservations.map((r) => `
-      <div class="status-card">
-        <div class="status-top">
-          <span class="room-tag">${r.room_name}</span>
-          <span class="time-range">${r.start_time} - ${r.end_time}</span>
-        </div>
-        <div class="reserver">예약자: ${escapeHtml(r.name)}</div>
-      </div>
-    `).join('');
-  } catch (err) {
-    statusGrid.innerHTML = `<div class="empty-state">예약 현황을 불러오지 못했습니다.</div>`;
-  }
+    roomRes.forEach(r => {
+      const sMin = parseTimeMin(r.start_time);
+      const eMin = parseTimeMin(r.end_time);
+      const left = ((sMin - startMin) / spanMin) * 100;
+      const width = ((eMin - sMin) / spanMin) * 100;
+
+      const slot = document.createElement('div');
+      slot.className = `timeline-slot ${color}`;
+      slot.style.left = `${Math.max(0, left)}%`;
+      slot.style.width = `${Math.max(2, width)}%`;
+      slot.innerHTML = `
+        <span class="slot-time">${r.start_time}–${r.end_time}</span>
+        <span class="slot-name">${escapeHtml(r.name)}</span>
+      `;
+      track.appendChild(slot);
+    });
+
+    // Vertical grid lines every 2 hours
+    for (let h = startHour + 2; h < endHour; h += 2) {
+      const line = document.createElement('div');
+      line.className = 'timeline-grid-line';
+      line.style.left = `${((h - startHour) / 12) * 100}%`;
+      track.appendChild(line);
+    }
+
+    wrapper.appendChild(track);
+    card.appendChild(wrapper);
+    dom.timetableContainer.appendChild(card);
+  });
 }
 
 function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
 }
 
-function openModal() {
-  formMessage.className = 'form-message';
-  formMessage.textContent = '';
-  form.reset();
-  inputDate.value = todayStr();
-  buildTimeOptions(inputStart);
-  buildTimeOptions(inputEnd);
-  inputEnd.selectedIndex = 1;
-  modalBackdrop.classList.add('open');
-}
-
-function closeModal() {
-  modalBackdrop.classList.remove('open');
-}
-
-document.getElementById('open-modal-btn').addEventListener('click', openModal);
-document.getElementById('close-modal-btn').addEventListener('click', closeModal);
-document.getElementById('cancel-btn').addEventListener('click', closeModal);
-modalBackdrop.addEventListener('click', (e) => {
-  if (e.target === modalBackdrop) closeModal();
-});
-
-form.addEventListener('submit', async (e) => {
+// ── Submit ──
+dom.form.addEventListener('submit', async (e) => {
   e.preventDefault();
-  formMessage.className = 'form-message';
-  formMessage.textContent = '';
+  dom.formMessage.classList.remove('show');
 
-  const name = document.getElementById('input-name').value.trim();
-  const roomInput = form.querySelector('input[name="room"]:checked');
-  const date = inputDate.value;
-  const start_time = inputStart.value;
-  const end_time = inputEnd.value;
+  const name = dom.inputName.value.trim();
+  const roomInput = dom.roomPills.querySelector('.room-pill.selected');
+  const room_id = roomInput ? Number(roomInput.dataset.id) : null;
+  const date = dom.inputDate.value;
+  const start_time = dom.inputStart.value;
+  const end_time = dom.inputEnd.value;
 
-  if (!roomInput) {
-    formMessage.className = 'form-message error';
-    formMessage.textContent = '회의실을 선택해 주세요.';
-    return;
-  }
-  if (start_time >= end_time) {
-    formMessage.className = 'form-message error';
-    formMessage.textContent = '종료 시간은 시작 시간보다 늦어야 합니다.';
-    return;
-  }
+  if (!name) { showFormMessage('예약자 이름을 입력해 주세요.', 'error'); return; }
+  if (!room_id) { showFormMessage('회의실을 선택해 주세요.', 'error'); return; }
+  if (start_time >= end_time) { showFormMessage('종료 시간은 시작 시간보다 늦어야 합니다.', 'error'); return; }
 
   try {
     const res = await fetch('/api/reservations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name,
-        room_id: Number(roomInput.value),
-        date,
-        start_time,
-        end_time,
-      }),
+      body: JSON.stringify({ name, room_id, date, start_time, end_time }),
     });
-
     const data = await res.json();
 
     if (!res.ok) {
-      formMessage.className = 'form-message error';
-      formMessage.textContent = data.error || '예약에 실패했습니다. 다른 시간대를 선택해 주세요. (마감)';
+      showFormMessage(data.error || '예약에 실패했습니다.', 'error');
       return;
     }
 
-    formMessage.className = 'form-message success';
-    formMessage.textContent = '예약이 완료되었습니다!';
-    showToast('✅ 예약이 완료되었습니다.');
-    await loadTodayStatus();
-    setTimeout(closeModal, 700);
+    showFormMessage('예약이 완료되었습니다!', 'success');
+    showToast('✅ 예약 완료');
+    dom.form.reset();
+    dom.inputDate.value = todayStr();
+
+    // re-select first room
+    const firstPill = dom.roomPills.querySelector('.room-pill');
+    if (firstPill) {
+      dom.roomPills.querySelectorAll('.room-pill').forEach(p => p.classList.remove('selected'));
+      firstPill.classList.add('selected');
+    }
+
+    await loadTimetable();
   } catch (err) {
-    formMessage.className = 'form-message error';
-    formMessage.textContent = '서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.';
+    showFormMessage('서버 오류가 발생했습니다.', 'error');
   }
 });
 
+// ── Init ──
 (async function init() {
+  dom.todayDate.textContent = formatDateLabel(todayStr());
+  dom.inputDate.value = todayStr();
+  fillSelect(dom.inputStart);
+  fillSelect(dom.inputEnd);
+  // default end = start + 1 hour
+  dom.inputEnd.selectedIndex = Math.min(dom.inputEnd.options.length - 1, 2);
+
   await loadRooms();
-  await loadTodayStatus();
+  await loadTimetable();
 })();

@@ -1,87 +1,72 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<title>회의실 예약 시스템</title>
-<link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>회의실 예약</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="app-header">
-    <div class="header-inner">
-      <div class="brand">
-        <span class="brand-icon">📅</span>
-        <h1>회의실 예약 시스템</h1>
-      </div>
-      <button class="btn btn-primary" id="open-modal-btn">+ 예약하기</button>
-    </div>
-  </header>
+  <div class="app-container">
 
-  <main class="container">
-    <section class="rooms-section">
-      <h2 class="section-title">회의실 목록</h2>
-      <div class="rooms-grid" id="rooms-grid">
-        <div class="skeleton">불러오는 중...</div>
+    <!-- Header -->
+    <header class="app-header glass">
+      <div class="header-inner">
+        <div class="brand">
+          <span class="brand-icon">🗓️</span>
+          <div class="brand-text">
+            <h1>회의실 예약</h1>
+            <span class="today-date" id="today-date"></span>
+          </div>
+        </div>
       </div>
-    </section>
+    </header>
 
-    <section class="status-section">
-      <div class="status-header">
-        <h2 class="section-title">오늘의 예약 현황</h2>
-        <span class="today-date" id="today-date"></span>
-      </div>
-      <div class="status-grid" id="status-grid">
-        <div class="skeleton">불러오는 중...</div>
-      </div>
-    </section>
-  </main>
-
-  <!-- 예약 모달 -->
-  <div class="modal-backdrop" id="modal-backdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>회의실 예약</h2>
-        <button class="close-btn" id="close-modal-btn" aria-label="닫기">✕</button>
-      </div>
-      <form id="reservation-form">
+    <!-- 예약 폼 -->
+    <section class="booking-section glass">
+      <h2 class="section-title">새 예약</h2>
+      <form id="reservation-form" class="booking-form">
         <div class="form-group">
-          <label for="input-name">이름 <span class="req">*</span></label>
-          <input type="text" id="input-name" placeholder="예약자 이름을 입력하세요" required />
+          <label for="input-name">예약자</label>
+          <input type="text" id="input-name" placeholder="이름을 입력하세요" required />
         </div>
 
         <div class="form-group">
-          <label>회의실 <span class="req">*</span></label>
-          <div class="room-radio-group" id="room-radio-group"></div>
+          <label>회의실</label>
+          <div class="room-pills" id="room-pills"></div>
         </div>
 
-        <div class="form-group">
-          <label for="input-date">날짜 <span class="req">*</span></label>
+        <div class="form-group form-group-date">
+          <label for="input-date">날짜</label>
           <input type="date" id="input-date" required />
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="input-start">시작 시간 <span class="req">*</span></label>
+        <div class="form-group form-group-time">
+          <label>시간</label>
+          <div class="time-select-row">
             <select id="input-start" required></select>
-          </div>
-          <div class="form-group">
-            <label for="input-end">종료 시간 <span class="req">*</span></label>
+            <span class="time-divider">—</span>
             <select id="input-end" required></select>
           </div>
         </div>
 
-        <div class="form-message" id="form-message"></div>
-
         <div class="form-actions">
-          <button type="button" class="btn btn-ghost" id="cancel-btn">취소</button>
-          <button type="submit" class="btn btn-primary">예약 완료</button>
+          <button type="submit" class="btn btn-primary">예약하기</button>
         </div>
       </form>
-    </div>
+
+      <div class="form-message" id="form-message"></div>
+    </section>
+
+    <!-- 타임테이블 -->
+    <section class="timetable-section">
+      <h2 class="section-title">오늘 예약 현황</h2>
+      <div class="timetable-rooms" id="timetable-container"></div>
+    </section>
+
   </div>
 
   <div class="toast" id="toast"></div>
-
   <script src="app.js"></script>
 </body>
 </html>

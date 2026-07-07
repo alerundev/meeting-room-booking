@@ -24,7 +24,11 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD || '',
 });
 
-const ROOMS = ['대회의실', '소회의실'];
+const ROOMS = [
+  { name: '대회의실', icon: '🏢', color: '#34C759' },
+  { name: '중회의실', icon: '🧩', color: '#007AFF' },
+  { name: '소회의실', icon: '💬', color: '#FF9500' }
+];
 
 async function initDb() {
   await pool.query(`
@@ -45,10 +49,10 @@ async function initDb() {
     );
   `);
 
-  for (const roomName of ROOMS) {
+  for (const room of ROOMS) {
     await pool.query(
       `INSERT INTO rooms (name) VALUES ($1) ON CONFLICT (name) DO NOTHING`,
-      [roomName]
+      [room.name]
     );
   }
 }
